@@ -67,13 +67,18 @@ private:
                     auto paramList = make_shared<SExpr>();
                     paramList->isAtom = false;
 
+                    // Save old renaming, but preserve function names globally
                     map<string, string> oldRenaming = varRenaming;
+                    string funcName;
+                    string funcNewName;
 
                     for (size_t i = 0; i < funcDef->children.size(); i++) {
                         if (funcDef->children[i]->isAtom) {
                             string paramName = funcDef->children[i]->value;
                             if (i == 0) {
                                 string newName = getNewName("f");
+                                funcName = paramName;
+                                funcNewName = newName;
                                 varRenaming[paramName] = newName;
                                 paramList->children.push_back(make_shared<SExpr>(newName));
                             } else {
@@ -91,7 +96,11 @@ private:
                         result->children.push_back(transform(expr->children[i]));
                     }
 
+                    // Restore old renaming but keep the function name globally
                     varRenaming = oldRenaming;
+                    if (!funcName.empty()) {
+                        varRenaming[funcName] = funcNewName;
+                    }
                     return result;
                 }
 
